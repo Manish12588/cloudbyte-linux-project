@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Editor swap and project files
+*.swp
+*~
+.vscode/
+.idea/
+
+# Secrets and keys, never commit these
+*.pem
+*.key
+*.env

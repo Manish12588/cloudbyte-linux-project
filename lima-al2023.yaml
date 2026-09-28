@@ -1,0 +1,79 @@
+# Lima template for CloudByte Solutions: Amazon Linux 2023 aarch64
+# Tested with Lima 2.1.1 on macOS Apple Silicon. No edit needed before first run.
+#
+# The image URL below points at a versioned release directory, not at
+# `os-images/latest/`. That is deliberate. AWS empties `latest/` on every new
+# release, so a filename pinned under it stops resolving and the download fails
+# with HTTP 403. A versioned directory is permanent, so this URL keeps working
+# and every student gets a byte-identical image.
+#
+# To move to a newer AL2023 release, change the version in BOTH the directory
+# and the filename, and replace `digest:` with the matching line from that
+# release's SHA256SUMS:
+#   https://cdn.amazonlinux.com/al2023/os-images/<version>/kvm-arm64/SHA256SUMS
+vmType: "vz"
+arch: "aarch64"
+
+images:
+  - location: "https://cdn.amazonlinux.com/al2023/os-images/2023.12.20260803.3/kvm-arm64/al2023-kvm-2023.12.20260803.3-kernel-6.1-arm64.xfs.gpt.qcow2"
+    arch: "aarch64"
+    digest: "sha256:60f0ec867d0890741c3ab364eef3fdd8a22b192cf27fc819f3198bec8192022b"
+
+cpus: 2
+memory: "2GiB"
+disk: "30GiB"
+
+# Share only the project repo into the VM, at a fixed guest-side path.
+# /host inside the VM is your linux-project repo on the Mac. Nothing else
+# from your home directory is visible to the VM. If your repo lives
+# somewhere other than ~/cloud-course/linux-project, change `location:`
+# (the host side) but leave `mountPoint:` (the VM side) as /host.
+mounts:
+  - location: "~/Documents/cloud-course/linux-project"
+    mountPoint: "/host"
+    writable: true
+
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux
+      # Section 1 Phase C creates 12 users back-to-back. On Lima, the guest user
+      # already owns a 1-billion-entry range in /etc/subuid and /etc/subgid,
+      # which consumes the whole SUB_UID_MAX window and causes the 7th useradd
+      # to fail with "Can't get unique subordinate UID range". Rootless
+      # containers aren't used in this project, so we both (a) remove the
+      # existing pre-provisioned range and (b) turn off subuid/subgid
+      # allocation for new users. Either alone would work; doing both makes
+      # the fix robust to future shadow-utils or Lima changes.
+      sed -i '/^lima:/d;/^wbs:/d' /etc/subuid /etc/subgid || true
+      grep -q '^SUB_UID_COUNT' /etc/login.defs || echo 'SUB_UID_COUNT 0' >> /etc/login.defs
+      grep -q '^SUB_GID_COUNT' /etc/login.defs || echo 'SUB_GID_COUNT 0' >> /etc/login.defs
+      sed -i 's/^SUB_UID_COUNT.*/SUB_UID_COUNT 0/' /etc/login.defs
+      sed -i 's/^SUB_GID_COUNT.*/SUB_GID_COUNT 0/' /etc/login.defs
+  # Verify still needed when bumping Lima versions: confirm the host home
+  # mount appears via `mount | grep virtiofs` inside a freshly-booted VM.
+  # If Lima upstream fixes cc_mounts.py, this whole provision block can go.
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux
+      # Lima 2.1.1 + AL2023 cloud-init silently drops virtiofs mount entries.
+      # cc_mounts.py validates them as block devices, can't resolve the
+      # virtiofs tag (e.g. "lima-473bd8d36af0987d"), and prints
+      # "Ignoring nonexistent named mount", leaving the host directory
+      # unmounted with no error. The kernel side is fine: a manual
+      # `mount -t virtiofs <tag> <mnt>` works.
+      # Workaround: parse Lima's cidata user-data, write proper fstab
+      # entries, and mount. Idempotent, so it is safe to re-run on every boot.
+      USER_DATA=/mnt/lima-cidata/user-data
+      [ -f "$USER_DATA" ] || exit 0
+      grep -E '^- \[lima-[a-f0-9]+, .*, virtiofs,' "$USER_DATA" | while read -r line; do
+          tag=$(echo "$line" | awk -F'[][, ]+' '{print $2}')
+          mnt=$(echo "$line" | awk -F'[][, ]+' '{print $3}')
+          [ -n "$tag" ] && [ -n "$mnt" ] || continue
+          mkdir -p "$mnt"
+          grep -q "^$tag" /etc/fstab || \
+              echo "$tag  $mnt  virtiofs  rw,nofail  0  0" >> /etc/fstab
+          mountpoint -q "$mnt" || mount "$mnt" || true
+      done

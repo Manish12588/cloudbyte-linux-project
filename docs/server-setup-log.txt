@@ -1,0 +1,39 @@
+28.09.2026 written by Manish (admin)
+
+4 groups were created:
++----------------+
+| Groups         |
++----------------+
+| company-docs   |
+| engineering    |
+| marketing      |
+| operations     |
+| reports        |
++----------------+
+
+12 Users were created:
++----------------+----------------+
+| User           | Department     |
++----------------+----------------+
+| alice          | Engineering    |
+| bob            | Engineering    |
+| carol          | Engineering    |
+| dave           | Engineering    |
+| emma           | Marketing      |
+| frank          | Marketing      |
+| grace          | Marketing      |
+| henry          | Operations     |
+| iris           | Operations     |
+| jack           | Operations     |
+| kate           | Operations,Admins|
+| leo            | Operations,Admins|
++----------------+----------------+
+
+Directory tree:
+/shared/
+├── engineering/       engineering group, mode 770
+├── marketing/         marketing group,   mode 770
+├── operations/        operations group,  mode 770
+└── company-docs/      admins group,      mode 775
+/logs/
+└── reports/           admins group,      mode 775

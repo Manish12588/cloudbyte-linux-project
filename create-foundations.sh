@@ -43,7 +43,7 @@ for group in engineering marketing operations admins; do
         echo "⏭️ Skipping creation of '$group'."
     fi
 done
-echo "\n======================================="
+echo -e "\n======================================="
 
 echo -e "========== User Creation ==========\n"
 for user in alice bob carol dave emma frank grace henry iris jack kate leo; do

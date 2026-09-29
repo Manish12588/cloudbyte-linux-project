@@ -68,7 +68,7 @@ for user in alice bob carol dave emma frank grace henry iris jack kate leo; do
       esac
 
       #Creating User
-      sudo useradd -m -c "$user ($department_group)" "$user"
+      sudo useradd -m -s /bin/bash -c "$user ($department_group)" "$user"
 
       if getent passwd "$user" > /dev/null 2>&1; then
            echo "✅ PASS: User '$user' created successfully."
@@ -156,7 +156,7 @@ for dir in company-docs engineering marketing operations reports; do
     ;;
   reports)
     path="/logs/$dir"
-    permission=755
+    permission=775
     ;;
   engineering|marketing|operations)
     path="/shared/$dir"

@@ -49,3 +49,29 @@ log in one go. Run it on the VM with:
 
     # Track 2 (Lima): repo is mounted at /host inside the VM
     bash /host/verify-foundations.sh
+
+## Section 2: File Management and Permissions
+
+Hardened the team folders and added a shared dropbox. Setgid makes team
+ownership reliable; the sticky bit makes the dropbox tamper-resistant.
+A permissions test report records what was attempted and what happened.
+
+### Updated directory modes
+
+| Path | Owner:Group | Mode | What's special |
+|---|---|---|---|
+| `/shared/engineering` | `root:engineering` | `2770` | setgid set |
+| `/shared/marketing` | `root:marketing` | `2770` | setgid set |
+| `/shared/operations` | `root:operations` | `2770` | setgid set |
+| `/shared/dropbox` | `root:admins` | `1773` | sticky bit; others can write but not list |
+
+### Verification
+
+`verify-permissions.sh` checks the team folders, the dropbox, the sample
+files, and setgid propagation. Run it on the VM with:
+
+    # Track 1 (Vagrant): repo is mounted at /vagrant
+    bash /vagrant/verify-permissions.sh
+
+    # Track 2 (Lima): repo is mounted at /host inside the VM
+    bash /host/verify-permissions.sh

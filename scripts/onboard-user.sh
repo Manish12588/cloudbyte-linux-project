@@ -20,6 +20,7 @@ fi
 # --- Argument parsing ----------------------------------------------------
 DRY_RUN=false
 CSV_FILE=""
+LOG=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -29,6 +30,10 @@ while [ $# -gt 0 ]; do
             ;;
         --dry-run)
             DRY_RUN=true
+            shift
+            ;;
+        --log)
+            LOG=true
             shift
             ;;
         -h|--help)
@@ -72,7 +77,7 @@ create_user() {
     echo "$username:$TEMP_PASSWORD" | chpasswd
     usermod -aG "$group" "$username"
     chage -d 0 "$username"
-    echo "Created $username in group $group with temp password (must change on first login)."
+    echo "Created $username in group $group with temp password (must change on first login)." >> /var/log/cloudbyte-onboarding.log
  fi
 
 }

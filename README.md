@@ -105,3 +105,32 @@ prints a ✅ or ❌ for each requirement. Run it on the VM with:
 
     # Track 2 (Lima): repo is mounted at /host inside the VM
     bash /host/verify-onboarding.sh
+
+## Section 4: Backup Automation
+
+Built two scheduled scripts to keep the team folders backed up.
+`scripts/backup-shared.sh` archives the whole `/shared` tree (excluding the
+backup directory itself) into a date-stamped `.tar.gz` under
+`/shared/backups`, with a `trap` that removes a partial archive if the
+script is interrupted mid-run. `scripts/cleanup-backups.sh` prunes archives
+older than seven days, with a `--preview` flag that lists what would go
+without deleting anything. Root cron drives both.
+
+### Schedule
+
+| Script                       | Schedule    | Log file                         |
+|------------------------------|-------------|----------------------------------|
+| `scripts/backup-shared.sh`   | `0 2 * * *` | `/var/log/cloudbyte-backup.log`  |
+| `scripts/cleanup-backups.sh` | `0 3 * * 0` | `/var/log/cloudbyte-cleanup.log` |
+
+### Verification
+
+`verify-backup.sh` walks the backup directory, both scripts, and the
+crontab in one go and prints a ✅ or ❌ for each requirement. Run it on
+the VM with:
+
+    # Vagrant: repo is mounted at /vagrant
+    bash /vagrant/verify-backup.sh
+
+    # Lima: repo is mounted at /host inside the VM
+    bash /host/verify-backup.sh

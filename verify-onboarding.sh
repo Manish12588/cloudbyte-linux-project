@@ -9,6 +9,10 @@
 SCRIPT=/host/scripts/onboard-user.sh
 CSV=/host/data/new-hires.csv
 
+#SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+#SCRIPT="$SCRIPT_DIR/onboard-user.sh"
+#CSV="$SCRIPT_DIR/new-hires.csv"
+
 PASS=0
 FAIL=0
 

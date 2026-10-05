@@ -33,7 +33,7 @@ Built the core of the server: four groups (`engineering`, `marketing`,
 
 ### Creation
 
-`create-foundations.sh` creates the groups, users, directories and setup
+`scripts/create-foundations.sh` creates the groups, users, directories and setup
 log in one go. Run it on the VM with:
 
     # Track 1 (Lima): repo is mounted at /host inside the VM
@@ -41,7 +41,7 @@ log in one go. Run it on the VM with:
 
 ### Verification
 
-`verify-foundations.sh` checks the groups, users, directories and setup
+`tests/verify-foundations.sh` checks the groups, users, directories and setup
 log in one go. Run it on the VM with:
 
     # Track 1 (Vagrant): repo is mounted at /vagrant
@@ -67,7 +67,7 @@ A permissions test report records what was attempted and what happened.
 
 ### Verification
 
-`verify-permissions.sh` checks the team folders, the dropbox, the sample
+`tests/verify-permissions.sh` checks the team folders, the dropbox, the sample
 files, and setgid propagation. Run it on the VM with:
 
     # Track 1 (Vagrant): repo is mounted at /vagrant
@@ -97,7 +97,7 @@ idempotency checks.
 
 ### Verification
 
-`verify-onboarding.sh` walks the script and the CSV end-to-end and
+`tests/verify-onboarding.sh` walks the script and the CSV end-to-end and
 prints a ✅ or ❌ for each requirement. Run it on the VM with:
 
     # Track 1 (Vagrant): repo is mounted at /vagrant
@@ -125,7 +125,7 @@ without deleting anything. Root cron drives both.
 
 ### Verification
 
-`verify-backup.sh` walks the backup directory, both scripts, and the
+`tests/verify-backup.sh` walks the backup directory, both scripts, and the
 crontab in one go and prints a ✅ or ❌ for each requirement. Run it on
 the VM with:
 

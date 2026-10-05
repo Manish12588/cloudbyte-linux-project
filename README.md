@@ -6,6 +6,60 @@ fictional 12-person startup that needs a properly configured multi-user
 Linux server: user accounts, group-based file access, automated backups,
 log analysis, and system health reporting.
 
+**What this project demonstrates:** user and group administration, least-privilege
+file permissions (setgid, sticky bit), idempotent Bash automation with strict mode
+and `trap` cleanup, cron-scheduled backups with retention and restore, scripted
+self-verification, and runbook-style documentation.
+
+## Repository layout
+```
+.
+├── scripts/                   # everything that changes the server
+│   ├── create-foundations.sh  # Section 1: groups, users, /shared tree
+│   ├── setup-permissions.sh   # Section 2: setgid, dropbox, sample files
+│   ├── onboard-user.sh        # create users singly or from CSV
+│   ├── setup-backups.sh       # Section 4: /shared/backups directory
+│   ├── backup-shared.sh       # nightly /shared archive
+│   ├── cleanup-backups.sh     # prune archives older than 7 days
+│   ├── restore-backup.sh      # interactive restore
+│   └── teardown-users.sh      # lab reset (destructive)
+├── tests/                     # everything that only checks
+│   ├── verify-foundations.sh  # Section 1 check
+│   ├── verify-permissions.sh  # Section 2 check
+│   ├── verify-onboarding.sh   # Section 3 check
+│   ├── verify-backup.sh       # Section 4 check
+│   └── verify-all.sh          # runs every verify-*.sh
+├── data/new-hires.csv         # sample input for onboarding
+├── docs/
+│   ├── server-handbook.md     # runbook for a new junior sysadmin
+│   ├── server-setup-log.txt   # Section 1 build record
+│   └── permissions-test-report.md
+├── lima-al2023.yaml           # VM definition (Amazon Linux 2023, Lima)
+└── README.md
+```
+## Quick start
+
+From the repo root, on a Linux host with `sudo` and `cron` installed:
+
+    bash scripts/create-foundations.sh
+    bash tests/verify-foundations.sh
+ 
+    sudo bash scripts/setup-permissions.sh
+    bash tests/verify-permissions.sh
+ 
+    sudo bash scripts/onboard-user.sh --csv data/new-hires.csv
+    bash tests/verify-onboarding.sh
+ 
+    sudo bash scripts/setup-backups.sh
+    sudo bash scripts/backup-shared.sh
+    sudo crontab -e            # add the two entries from Section 4
+    bash tests/verify-backup.sh
+ 
+    bash tests/verify-all.sh   # everything in one run
+
+Using Lima: `limactl start --name=cloudbyte lima-al2023.yaml`,
+`limactl shell cloudbyte`, then `cd /host` and run the commands above.
+
 ## Section 1: Server Foundations
 
 Built the core of the server: four groups (`engineering`, `marketing`,

@@ -1,0 +1,60 @@
+CloudByte differences log: local VM vs EC2 deployment
+Author: Manish Kumar
+Drafted: 06-10-2026
+
+1. DEFAULT USER
+
+Observation: The default login user on EC2 is ec2-user, with home directory
+/home/ec2-user. On the local VM the equivalent was vagrant (/home/vagrant) on
+Vagrant, or your Mac username on Lima.
+
+Implication: Every absolute path in the cron entries now begins /home/ec2-user/...
+instead of /vagrant/... or /host/.... Any script or scheduled job that hard-coded
+the old mount path has to be re-pathed for the host it runs on. The onboarded users
+(alice, bob, and the rest) are unaffected, because onboard-user.sh creates them
+independently of whoever the default login user happens to be.
+
+2. HOME DIRECTORY
+
+Observation: <one or two sentences naming the difference you saw on `pwd`>
+
+Implication: <one or two sentences on what it changes for the deployment>
+(Steer: think about every script and cron entry that uses an absolute path under
+home. What needs editing, and what is left untouched?)
+
+3. NO SHARED MOUNT
+
+Observation: <one or two sentences naming the difference you saw on `df -h`>
+
+Implication: <one or two sentences on what it changes for the deployment>
+(Steer: how did files reach the local VM from your laptop? How did they reach EC2
+just now? What does scp give you that the VM's shared mount used to provide for free?)
+
+4. TIME ZONE
+
+Observation: <one or two sentences naming the difference you saw on `timedatectl`>
+
+Implication: <one or two sentences on what it changes for the deployment>
+(Steer: what does `0 2 * * *` mean on a UTC clock versus a local one? Whose working
+hours does the backup schedule now line up with?)
+
+5. CRONIE DEFAULT STATE
+
+Observation: <one or two sentences naming the difference you saw on `dnf list
+installed cronie`>
+
+Implication: <one or two sentences on what it changes for the deployment>
+(Steer: was this also true of the local VM at the start of Section 4? What does
+"minimal by default" mean for what you can and can't assume on a fresh box?)
+
+6. <FILL FROM YOUR ORIENTATION WALK: open slot 1>
+
+Observation: <one or two sentences>
+
+Implication: <one or two sentences>
+
+7. <FILL FROM YOUR ORIENTATION WALK: open slot 2>
+
+Observation: <one or two sentences>
+
+Implication: <one or two sentences>

@@ -211,3 +211,12 @@ levels spread across the day. `analyse-logs.sh` summarises it into a timestamped
 report under `/logs/reports/`: counts by severity, the busiest hour, and every
 CRITICAL entry, using a `sort | uniq -c | sort -rn` pipeline. Scheduled the
 analysis hourly via cron, and added `verify-logs.sh` to check the lot.
+
+## Section 8: System Health Dashboard
+
+Built system-health.sh on the EC2 server. It snapshots uptime/load, memory,
+disk, the top processes by CPU, the status of crond and sshd, and logged-in
+users into a printf-formatted, timestamped report under /logs/health-reports/.
+It raises basic alerts (disk over 80%, zombie processes, a monitored service
+down) and archives reports older than a week. Scheduled every 2 hours via cron,
+and added verify-health.sh to check the lot.

@@ -14,27 +14,36 @@ self-verification, and runbook-style documentation.
 ## Repository layout
 ```
 .
-├── scripts/                   # everything that changes the server
-│   ├── create-foundations.sh  # Section 1: groups, users, /shared tree
-│   ├── setup-permissions.sh   # Section 2: setgid, dropbox, sample files
-│   ├── onboard-user.sh        # create users singly or from CSV
-│   ├── setup-backups.sh       # Section 4: /shared/backups directory
-│   ├── backup-shared.sh       # nightly /shared archive
-│   ├── cleanup-backups.sh     # prune archives older than 7 days
-│   ├── restore-backup.sh      # interactive restore
-│   └── teardown-users.sh      # lab reset (destructive)
-├── tests/                     # everything that only checks
-│   ├── verify-foundations.sh  # Section 1 check
-│   ├── verify-permissions.sh  # Section 2 check
-│   ├── verify-onboarding.sh   # Section 3 check
-│   ├── verify-backup.sh       # Section 4 check
-│   └── verify-all.sh          # runs every verify-*.sh
-├── data/new-hires.csv         # sample input for onboarding
+├── scripts/                  # everything that changes the server
+│   ├── create-foundations.sh # S1: groups, users, /shared
+│   ├── setup-permissions.sh  # S2: setgid, dropbox
+│   ├── onboard-user.sh       # S3: add users (single/CSV)
+│   ├── setup-backups.sh      # S4: /shared/backups dir
+│   ├── backup-shared.sh      # S4: nightly archive
+│   ├── cleanup-backups.sh    # S4: prune after 7 days
+│   ├── restore-backup.sh     # S4: interactive restore
+│   ├── log-generator.sh      # S7: synthetic app log
+│   ├── analyse-logs.sh       # S7: log analysis report
+│   ├── system-health.sh      # S8: health report, alerts
+│   └── teardown-users.sh     # lab reset (destructive)
+├── tests/                    # everything that only checks
+│   ├── verify-foundations.sh # S1 check
+│   ├── verify-permissions.sh # S2 check
+│   ├── verify-onboarding.sh  # S3 check
+│   ├── verify-backup.sh      # S4 check
+│   ├── verify-ec2.sh         # S6 check (EC2)
+│   ├── verify-logs.sh        # S7 check (EC2)
+│   ├── verify-health.sh      # S8 check (EC2)
+│   └── verify-all.sh         # runs every verify-*.sh
+├── data/
+│   ├── new-hires.csv         # sample onboarding input
+│   └── cloudbyte-users.csv   # S6: 12-user roster
 ├── docs/
-│   ├── server-handbook.md     # runbook for a new junior sysadmin
-│   ├── server-setup-log.txt   # Section 1 build record
-│   └── permissions-test-report.md
-├── lima-al2023.yaml           # VM definition (Amazon Linux 2023, Lima)
+│   ├── server-handbook.md    # sysadmin runbook
+│   ├── server-setup-log.txt  # S1 build record
+│   ├── permissions-test-report.md # S2 tests
+│   └── differences-log.txt   # S6: VM vs EC2 notes
+├── lima-al2023.yaml          # Lima VM definition (AL2023)
 └── README.md
 ```
 ## Quick start
@@ -189,6 +198,12 @@ the VM with:
     # Lima: repo is mounted at /host inside the VM
     bash /host/verify-backup.sh
 
+## Section 5: Server Handbook
+
+Wrote `docs/server-handbook.md`, a runbook for a new junior sysadmin: server
+overview, users and groups, directory layout, a scripts inventory, scheduled jobs,
+common operations, and the self-checks that prove the server matches the document.
+
 ## Section 6: EC2 Deployment
 
 Deployed the CloudByte server to a t3.micro Amazon Linux 2023 EC2 instance.
@@ -198,10 +213,20 @@ two existing docs and the three scripts across with `scp`, re-established the
 backup and cleanup cron pipeline with EC2-absolute paths, and wrote a reflective
 `differences-log.txt` recording what changed between the local VM and the cloud.
 
-Files added this section:
-- `verify-ec2.sh`: runs on EC2, checks the whole deployment from scratch.
-- `data/cloudbyte-users.csv`: the twelve-staffer production roster.
-- `docs/differences-log.txt`: local-VM-versus-EC2 reflection.
+### Files added
+
+| File | Purpose |
+| ---- | ------- |
+| `tests/verify-ec2.sh` | Runs on EC2; checks users, groups, directories, docs, scripts and cron |
+| `data/cloudbyte-users.csv` | The twelve-staffer production roster |
+| `docs/differences-log.txt` | Local VM versus EC2 reflection (default user, home directory, paths) |
+
+### Verification
+
+`tests/verify-ec2.sh` prints a ✅ or ❌ for each requirement. Run it on the
+EC2 instance with:
+
+    bash ~/cloud-course/linux-project/tests/verify-ec2.sh
 
 ## Section 7: Log Analysis Tools
 
@@ -212,6 +237,29 @@ report under `/logs/reports/`: counts by severity, the busiest hour, and every
 CRITICAL entry, using a `sort | uniq -c | sort -rn` pipeline. Scheduled the
 analysis hourly via cron, and added `verify-logs.sh` to check the lot.
 
+### Report sections
+
+| Section | What it shows |
+| ------- | ------------- |
+| Count By Severity | Number of INFO, WARN, ERROR and CRITICAL lines |
+| Count By Busiest Hours | The single hour with the most entries |
+| CRITICAL Entries | Every CRITICAL line, or `(none)` |
+
+### Schedule
+
+| Script | Schedule | Log file |
+| ------ | -------- | -------- |
+| `scripts/analyse-logs.sh` | hourly (`0 * * * *`) | `/var/log/cloudbyte-loganalysis.log` |
+
+### Verification
+
+`tests/verify-logs.sh` checks both scripts, the generated log, the report
+sections and the cron entry. Run it on the EC2 instance with:
+
+    sudo bash scripts/log-generator.sh      # generate data first
+    sudo bash scripts/analyse-logs.sh       # produce a report
+    bash tests/verify-logs.sh
+
 ## Section 8: System Health Dashboard
 
 Built system-health.sh on the EC2 server. It snapshots uptime/load, memory,
@@ -220,3 +268,27 @@ users into a printf-formatted, timestamped report under /logs/health-reports/.
 It raises basic alerts (disk over 80%, zombie processes, a monitored service
 down) and archives reports older than a week. Scheduled every 2 hours via cron,
 and added verify-health.sh to check the lot.
+
+### Alerts
+
+| Alert | Trigger |
+| ----- | ------- |
+| Disk | Root filesystem usage above 80% |
+| Zombies | One or more zombie processes |
+| Service down | `crond` or `sshd` not active |
+
+### Schedule
+
+| Script | Schedule |
+| ------ | -------- |
+| `scripts/system-health.sh` | every 2 hours (`0 */2 * * *`) |
+
+### Verification
+
+`tests/verify-health.sh` checks the script, a report carrying every section plus
+Alerts, the archive directory and the cron entry. Run it on the EC2 instance
+(after running `system-health.sh` at least once) with:
+
+    sudo bash scripts/system-health.sh
+    bash tests/verify-health.sh
+ 

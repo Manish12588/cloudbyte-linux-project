@@ -1,7 +1,7 @@
 #!/bin/bash
 # verify-logs.sh: CloudByte Section 7 self-check (runs on EC2).
-# Author:  <your name>
-# Created: <date>
+# Author:  Manish Kumar
+# Created: 08-10-2026
 # Purpose: Test the log-analysis deliverables: both scripts present and
 #          runnable, a generated log carrying every severity, a report with all
 #          three sections, and the hourly cron entry.

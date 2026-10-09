@@ -1,7 +1,7 @@
 #!/bin/bash
 # verify-health.sh: CloudByte Section 8 self-check (runs on EC2).
-# Author:  <your name>
-# Created: <date>
+# Author:  Manish Kumar
+# Created: 08-10-2026
 # Purpose: Test the system-health deliverables: the script is present and
 #          runnable, a report exists carrying every section plus ALERTS, the
 #          archive directory exists, and the */2 cron entry is in place.

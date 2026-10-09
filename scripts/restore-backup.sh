@@ -1,6 +1,6 @@
 #!/bin/bash
 # restore-backup.sh: CloudByte interactive restore tool.
-#
+# Author: Manish Kumar
 # Lists every backup tarball in /shared/backups, asks you to pick one,
 # extracts it to a directory of your choice (running as root). Refuses
 # to extract over /shared (live data).
